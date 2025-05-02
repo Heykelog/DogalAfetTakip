@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Çalışan Düzenle - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user-edit me-2"></i>Çalışan Düzenle</h1>
+    <div>
+        <a href="{{ url_for('dashboard.employee_detail', employee_id=employee._id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Çalışan Detayına Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>{{ employee.name }} - Bilgileri Düzenle</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.employee_edit', employee_id=employee._id) }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">İsim Soyisim <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ employee.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">E-posta <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ employee.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Telefon <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ employee.get('phone', '') }}" required placeholder="+905551234567">
+                            <div class="form-text">Uluslararası formatta girin (örn: +905551234567)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telegram_id" class="form-label">Telegram ID</label>
+                            <input type="text" class="form-control" id="telegram_id" name="telegram_id" value="{{ employee.get('telegram_id', '') }}">
+                            <div class="form-text">Telegram kullanıcı adı veya ID</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Şehir <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ employee.get('city', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">Departman <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="department" name="department" value="{{ employee.get('department', '') }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="position" class="form-label">Pozisyon</label>
+                            <input type="text" class="form-control" id="position" name="position" value="{{ employee.get('position', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="emergency_contact" class="form-label">Acil Durum İletişim</label>
+                            <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" value="{{ employee.get('emergency_contact', '') }}">
+                            <div class="form-text">Acil durumlarda ulaşılacak yakını</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="address" class="form-label">Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="2">{{ employee.get('address', '') }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Durum</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="unknown" {% if employee.get('status') == 'unknown' %}selected{% endif %}>Bilinmiyor</option>
+                                <option value="safe" {% if employee.get('status') == 'safe' %}selected{% endif %}>Güvende</option>
+                                <option value="trapped" {% if employee.get('status') == 'trapped' %}selected{% endif %}>Enkaz Altında</option>
+                                <option value="medical_help" {% if employee.get('status') == 'medical_help' %}selected{% endif %}>Tıbbi Yardım Gerekli</option>
+                                <option value="support_needed" {% if employee.get('status') == 'support_needed' %}selected{% endif %}>Destek İhtiyacı</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back();">İptal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Değişiklikleri Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bilgilendirme</h5>
+            </div>
+            <div class="card-body">
+                <h6>Çalışan Bilgileri Düzenleme</h6>
+                <p>Çalışanın bilgilerini güncellemek için formu doldurun. Zorunlu alanlar <span class="text-danger">*</span> ile işaretlenmiştir.</p>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-1"></i> <strong>İpucu:</strong> Çalışanın durumunu değiştirdiğinizde, bu değişiklik durum geçmişinde kaydedilecektir.
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Telefon numarasını uluslararası formatta girdiğinizden emin olun. Bu format SMS ve WhatsApp mesajları için kullanılacaktır.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-trash me-2"></i>Çalışanı Sil</h5>
+            </div>
+            <div class="card-body">
+                <p>Bu çalışanı ve tüm ilişkili verilerini sistemden silmek için:</p>
+                <form method="POST" action="{{ url_for('dashboard.delete_employees') }}" onsubmit="return confirm('{{ employee.name }} isimli çalışanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')">
+                    <input type="hidden" name="employee_ids" value="{{ employee._id }}">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>Çalışanı Sil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

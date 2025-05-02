@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Gösterge Paneli - Acil Durum Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Gösterge Paneli</h2>
+    <div>
+        <a href="{{ url_for('dashboard.new_disaster') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plus-circle me-1"></i>Yeni Afet Ekle
+        </a>
+    </div>
+</div>
+
+<!-- Status Overview Cards -->
+<div class="status-overview mb-4">
+    <div class="status-card bg-white">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-secondary mb-0">Toplam Çalışan</h6>
+                <i class="fas fa-users fa-lg text-primary opacity-75"></i>
+            </div>
+            <h2 class="mt-3 mb-0 fw-bold">{{ employee_count }}</h2>
+            <a href="{{ url_for('dashboard.employees') }}" class="text-primary mt-auto small">
+                Tüm çalışanları görüntüle <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="status-card bg-white">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-secondary mb-0">Enkaz Altında</h6>
+                <i class="fas fa-exclamation-triangle fa-lg text-danger opacity-75"></i>
+            </div>
+            <h2 class="mt-3 mb-0 fw-bold text-danger">{{ status_counts.trapped }}</h2>
+            <a href="{{ url_for('dashboard.employees', status='trapped') }}" class="text-danger mt-auto small">
+                Kritik durumları görüntüle <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="status-card bg-white">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-secondary mb-0">Tıbbi Yardım</h6>
+                <i class="fas fa-medkit fa-lg text-warning opacity-75"></i>
+            </div>
+            <h2 class="mt-3 mb-0 fw-bold text-warning">{{ status_counts.medical_help }}</h2>
+            <a href="{{ url_for('dashboard.employees', status='medical_help') }}" class="text-warning mt-auto small">
+                Tıbbi yardım gereklileri görüntüle <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="status-card bg-white">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-secondary mb-0">Güvende</h6>
+                <i class="fas fa-check-circle fa-lg text-success opacity-75"></i>
+            </div>
+            <h2 class="mt-3 mb-0 fw-bold text-success">{{ status_counts.safe }}</h2>
+            <a href="{{ url_for('dashboard.employees', status='safe') }}" class="text-success mt-auto small">
+                Güvende olanları görüntüle <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Active Disasters Card -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-circle me-2 text-danger"></i>Aktif Afetler</h5>
+                {% if active_disasters_count > 0 %}
+                <span class="badge bg-danger">{{ active_disasters_count }}</span>
+                {% else %}
+                <span class="badge bg-success">0</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if active_disasters_count > 0 %}
+                <p class="mb-3">{{ active_disasters_count }} aktif afet durumu bulunmaktadır.</p>
+                <a href="{{ url_for('dashboard.disasters', active_only='true') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-eye me-1"></i>Aktif Afetleri Görüntüle
+                </a>
+                {% else %}
+                <div class="text-center my-4">
+                    <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                    <p>Şu anda aktif afet durumu bulunmamaktadır.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Distribution Chart -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>Durum Dağılımı</h5>
+            </div>
+            <div class="card-body pb-0">
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- City Distribution Chart -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-map me-2 text-primary"></i>Şehir Bazlı Dağılım</h5>
+            </div>
+            <div class="card-body pb-0">
+                <div class="chart-container">
+                    <canvas id="cityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-primary"></i>Hızlı İşlemler</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('dashboard.send_messages') }}" class="list-group-item list-group-item-action border-0 px-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                                <i class="fas fa-paper-plane text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Toplu Mesaj Gönder</h6>
+                                <p class="text-muted small mb-0">Çalışanlara bilgilendirme mesajı gönderin</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('dashboard.map_view') }}" class="list-group-item list-group-item-action border-0 px-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
+                                <i class="fas fa-map-marked-alt text-success"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Harita Görünümü</h6>
+                                <p class="text-muted small mb-0">Çalışanları harita üzerinde takip edin</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('dashboard.employees', status='unknown') }}" class="list-group-item list-group-item-action border-0 px-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 p-2 me-3">
+                                <i class="fas fa-question-circle text-secondary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Durumu Bilinmeyenler</h6>
+                                <p class="text-muted small mb-0">{{ status_counts.unknown }} çalışanın durumu bilinmiyor</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('dashboard.import_employees') }}" class="list-group-item list-group-item-action border-0 px-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                                <i class="fas fa-file-excel text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Excel'den İçe Aktar</h6>
+                                <p class="text-muted small mb-0">Toplu çalışan verisi ekleyin</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Güvende', 'Enkaz Altında', 'Tıbbi Yardım', 'Destek İhtiyacı', 'Bilinmiyor'],
+                datasets: [{
+                    data: [
+                        {{ status_counts.safe }}, 
+                        {{ status_counts.trapped }}, 
+                        {{ status_counts.medical_help }}, 
+                        {{ status_counts.support_needed }}, 
+                        {{ status_counts.unknown }}
+                    ],
+                    backgroundColor: [
+                        '#2ec4b6', // Güvende - yeşil
+                        '#e71d36', // Enkaz altında - kırmızı
+                        '#ff9f1c', // Tıbbi yardım - sarı
+                        '#4cc9f0', // Destek ihtiyacı - mavi
+                        '#adb5bd'  // Bilinmiyor - gri
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+        
+        // City chart
+        const cityCtx = document.getElementById('cityChart').getContext('2d');
+        const cityLabels = [];
+        const cityData = [];
+        
+        {% for city, count in city_counts.items() %}
+        cityLabels.push("{{ city }}");
+        cityData.push({{ count }});
+        {% endfor %}
+        
+        const cityChart = new Chart(cityCtx, {
+            type: 'bar',
+            data: {
+                labels: cityLabels,
+                datasets: [{
+                    label: 'Çalışan Sayısı',
+                    data: cityData,
+                    backgroundColor: '#4361ee',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

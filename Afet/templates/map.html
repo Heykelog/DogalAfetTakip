@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFET - Çalışan Konum Haritası</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* Sabit menü ve içerik için stil */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            padding-top: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+        main {
+            margin-left: 16.67%; /* col-lg-2 genişliği */
+            padding-top: 20px;
+        }
+        @media (max-width: 991.98px) {
+            main {
+                margin-left: 0;
+                padding-top: 70px;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding-top: 0;
+                position: relative;
+            }
+            .mobile-nav {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                z-index: 999;
+                background-color: #343a40;
+                padding: 10px;
+            }
+        }
+        #map {
+            height: 80vh;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .legend-item {
+            margin-bottom: 5px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+        }
+        .filter-section {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .refresh-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        .employee-info {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .emergency-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar - sabit -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
+                <div class="position-sticky">
+                    <div class="text-center mb-4">
+                        <h5 class="text-white">Afet İletişim Sistemi</h5>
+                        <hr class="bg-light">
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/admin">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active text-white" href="/map">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                Harita
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/analytics">
+                                <i class="bi bi-bar-chart me-2"></i>
+                                İstatistikler
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-white" href="{{ url_for('admin_logout') }}">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Çıkış Yap
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mobil navigasyon - küçük ekranlar için -->
+            <div class="d-lg-none mobile-nav">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="text-white mb-0">Afet İletişim Sistemi</h5>
+                    <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#mobilMenu">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main content - içerik -->
+            <main class="col-md-9 col-lg-10 px-md-4 py-4">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h2>Çalışan Konum Haritası</h2>
+                        <p>Bu harita tüm çalışanların konumlarını ve durumlarını göstermektedir.</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button id="refresh-map" class="btn btn-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Haritayı Yenile
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Filtreleme Seçenekleri -->
+                        <div class="filter-section mb-3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="show-urgent" checked>
+                                        <label class="form-check-label" for="show-urgent">Enkaz Altında</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="show-medical" checked>
+                                        <label class="form-check-label" for="show-medical">Tıbbi Yardım</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="show-safe" checked>
+                                        <label class="form-check-label" for="show-safe">İyi Durumda</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Harita Alanı -->
+                        <div class="position-relative">
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Özet Bilgi Kartı -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="m-0">Durum Özeti</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="small text-muted">Enkaz Altında</div>
+                                            <div class="emergency-count" id="urgent-count">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="small text-muted">Tıbbi Yardım</div>
+                                            <div class="emergency-count" id="medical-count" style="color: #fd7e14;">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="small text-muted">İyi Durumda</div>
+                                            <div class="emergency-count" id="safe-count" style="color: #28a745;">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="small text-muted">Bilinmiyor</div>
+                                            <div class="emergency-count" id="unknown-count" style="color: #6c757d;">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="text-center">
+                                    <div class="small text-muted">Son Güncelleme</div>
+                                    <div id="last-update"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seçilen Çalışan Bilgileri -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="m-0">Çalışan Bilgileri</h5>
+                            </div>
+                            <div class="card-body employee-info" id="employee-details">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-person-circle" style="font-size: 3rem;"></i>
+                                    <p class="mt-3">Detayları görmek için haritadan bir çalışan seçin</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <script>
+        // Harita oluşturma
+        const map = L.map('map').setView([39.1667, 35.6667], 6); // Türkiye'nin merkezi
+        
+        // Harita katmanı ekleme
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Marker grupları
+        const markers = {
+            urgent: L.layerGroup().addTo(map),
+            medical: L.layerGroup().addTo(map),
+            safe: L.layerGroup().addTo(map),
+            unknown: L.layerGroup().addTo(map)
+        };
+        
+        // Filtreleme olayları
+        document.getElementById('show-urgent').addEventListener('change', function() {
+            toggleMarkerGroup('urgent', this.checked);
+        });
+        
+        document.getElementById('show-medical').addEventListener('change', function() {
+            toggleMarkerGroup('medical', this.checked);
+        });
+        
+        document.getElementById('show-safe').addEventListener('change', function() {
+            toggleMarkerGroup('safe', this.checked);
+        });
+        
+        // Marker gruplarını göster/gizle
+        function toggleMarkerGroup(group, show) {
+            if (show) {
+                map.addLayer(markers[group]);
+            } else {
+                map.removeLayer(markers[group]);
+            }
+        }
+        
+        // Haritayı yenileme
+        document.getElementById('refresh-map').addEventListener('click', function() {
+            loadMapData();
+        });
+        
+        // Harita verilerini yükleme
+        function loadMapData() {
+            fetch('/api/map-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        updateMap(data.data);
+                    } else {
+                        alert('Harita verisi alınırken bir hata oluştu: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading map data:', error);
+                    alert('Harita verisi alınırken bir hata oluştu');
+                });
+        }
+        
+        // Haritayı güncelleme
+        function updateMap(employees) {
+            // Mevcut markerları temizle
+            for (const group in markers) {
+                markers[group].clearLayers();
+            }
+            
+            // Sayaçları sıfırla
+            let counts = {
+                urgent: 0,
+                medical: 0,
+                safe: 0,
+                unknown: 0
+            };
+            
+            // Yeni markerları ekle
+            employees.forEach(employee => {
+                const markerColor = employee.color;
+                const markerGroup = employee.status || 'unknown';
+                
+                // Sayaçları güncelle
+                counts[markerGroup]++;
+                
+                // Marker ikonu
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${markerColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+                
+                // Marker oluştur
+                const marker = L.marker(employee.coords, { icon: icon })
+                    .bindPopup(
+                        `<div class="employee-popup">
+                            <h6>${employee.name}</h6>
+                            <p><strong>Durum:</strong> <span style="color: ${markerColor}">${employee.status_text}</span></p>
+                            <p><strong>Şehir:</strong> ${employee.city}</p>
+                            <p><strong>Telefon:</strong> ${employee.phone}</p>
+                            <p><strong>Son Güncelleme:</strong> ${employee.last_update}</p>
+                            <button class="btn btn-sm btn-primary view-details" 
+                                data-phone="${employee.phone}">Detayları Göster</button>
+                        </div>`
+                    );
+                
+                // Popup açıldığında
+                marker.on('popupopen', function() {
+                    // Detay gösterme butonu olayı
+                    setTimeout(() => {
+                        const detailsButton = document.querySelector('.view-details');
+                        if (detailsButton) {
+                            detailsButton.addEventListener('click', function() {
+                                const phone = this.getAttribute('data-phone');
+                                loadEmployeeDetails(phone);
+                            });
+                        }
+                    }, 100);
+                });
+                
+                // Uygun gruba ekle
+                markers[markerGroup].addLayer(marker);
+            });
+            
+            // Sayaçları güncelle
+            document.getElementById('urgent-count').textContent = counts.urgent;
+            document.getElementById('medical-count').textContent = counts.medical;
+            document.getElementById('safe-count').textContent = counts.safe;
+            document.getElementById('unknown-count').textContent = counts.unknown;
+            
+            // Son güncelleme
+            document.getElementById('last-update').textContent = new Date().toLocaleString('tr-TR');
+        }
+        
+        // Çalışan detaylarını yükleme
+        function loadEmployeeDetails(phone) {
+            fetch(`/api/employee-history/${phone}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        displayEmployeeDetails(data.data);
+                    } else {
+                        alert('Çalışan bilgileri alınırken bir hata oluştu: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading employee details:', error);
+                    alert('Çalışan bilgileri alınırken bir hata oluştu');
+                });
+        }
+        
+        // Çalışan detaylarını gösterme
+        function displayEmployeeDetails(data) {
+            const employee = data.employee;
+            const statusHistory = data.status_history;
+            
+            // Durum rengi belirleme
+            let statusColor = '#6c757d'; // Default: gray
+            let statusText = 'Bilinmiyor';
+            
+            if (employee.current_status === 'urgent') {
+                statusColor = '#dc3545'; // Red
+                statusText = 'Enkaz Altında';
+            } else if (employee.current_status === 'medical') {
+                statusColor = '#fd7e14'; // Orange
+                statusText = 'Tıbbi Yardım';
+            } else if (employee.current_status === 'safe') {
+                statusColor = '#28a745'; // Green
+                statusText = 'İyi Durumda';
+            }
+            
+            // Durum geçmişi HTML
+            let statusHistoryHtml = '';
+            if (statusHistory.length > 0) {
+                statusHistoryHtml = '<div class="mt-3"><h6>Durum Geçmişi</h6><ul class="list-group">';
+                statusHistory.forEach(update => {
+                    let updateStatus = 'Bilinmiyor';
+                    let updateColor = '#6c757d';
+                    
+                    if (update.status === 'urgent') {
+                        updateStatus = 'Enkaz Altında';
+                        updateColor = '#dc3545';
+                    } else if (update.status === 'medical') {
+                        updateStatus = 'Tıbbi Yardım';
+                        updateColor = '#fd7e14';
+                    } else if (update.status === 'safe') {
+                        updateStatus = 'İyi Durumda';
+                        updateColor = '#28a745';
+                    }
+                    
+                    statusHistoryHtml += `
+                    <li class="list-group-item">
+                        <span class="badge" style="background-color: ${updateColor}">${updateStatus}</span>
+                        <small class="text-muted ms-2">${update.timestamp}</small>
+                    </li>`;
+                });
+                statusHistoryHtml += '</ul></div>';
+            }
+            
+            // Detay HTML'i
+            const detailsHtml = `
+            <div class="employee-details">
+                <h5>${employee.name}</h5>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge me-2" style="background-color: ${statusColor}">${statusText}</span>
+                    <span class="text-muted small">Son güncelleme: ${employee.last_update ? new Date(employee.last_update).toLocaleString('tr-TR') : 'Bilinmiyor'}</span>
+                </div>
+                <div class="mb-2"><strong>Telefon:</strong> ${employee.phone}</div>
+                <div class="mb-2"><strong>Şehir:</strong> ${employee.city || 'Belirtilmemiş'}</div>
+                <div class="mb-2"><strong>Bölge:</strong> ${employee.region || 'Belirtilmemiş'}</div>
+                <div class="mb-2"><strong>Departman:</strong> ${employee.department || 'Belirtilmemiş'}</div>
+                
+                ${statusHistoryHtml}
+                
+                <div class="mt-3">
+                    <button class="btn btn-primary btn-sm" onclick="sendMessage('${employee.phone}')">
+                        <i class="bi bi-chat"></i> Mesaj Gönder
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="markResolved('${employee.phone}')">
+                        <i class="bi bi-check-lg"></i> Durumu Çözüldü
+                    </button>
+                </div>
+            </div>`;
+            
+            document.getElementById('employee-details').innerHTML = detailsHtml;
+        }
+        
+        // Mesaj gönderme
+        function sendMessage(phone) {
+            const message = prompt("Göndermek istediğiniz mesajı yazın:");
+            if (message) {
+                fetch('/api/test-whatsapp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        message: message
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert("Mesaj başarıyla gönderildi");
+                    } else {
+                        alert("Mesaj gönderilirken bir hata oluştu: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending message:", error);
+                    alert("Mesaj gönderilirken bir hata oluştu");
+                });
+            }
+        }
+        
+        // Durum çözüldü olarak işaretleme
+        function markResolved(phone) {
+            if (confirm("Bu çalışanın durumunu 'İyi Durumda' olarak işaretlemek istediğinizden emin misiniz?")) {
+                fetch(`/api/status/${phone}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'safe'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert("Durum başarıyla güncellendi");
+                        loadMapData(); // Haritayı yenile
+                    } else {
+                        alert("Durum güncellenirken bir hata oluştu: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error updating status:", error);
+                    alert("Durum güncellenirken bir hata oluştu");
+                });
+            }
+        }
+        
+        // Sayfa yüklendiğinde haritayı yükle
+        document.addEventListener('DOMContentLoaded', loadMapData);
+    </script>
+</body>
+</html> 

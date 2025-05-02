@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Afet Ekle - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-plus-circle me-2"></i>Yeni Afet Ekle</h1>
+    <div>
+        <a href="{{ url_for('dashboard.disasters') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Afet Listesine Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Afet Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.new_disaster') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="name" class="form-label">Afet Adı <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Örn: İstanbul Depremi 2023">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="type" class="form-label">Afet Türü <span class="text-danger">*</span></label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Tür Seçin</option>
+                                {% for disaster_type in disaster_types %}
+                                    {% if disaster_type == 'earthquake' %}
+                                    <option value="{{ disaster_type }}">Deprem</option>
+                                    {% elif disaster_type == 'flood' %}
+                                    <option value="{{ disaster_type }}">Sel</option>
+                                    {% elif disaster_type == 'fire' %}
+                                    <option value="{{ disaster_type }}">Yangın</option>
+                                    {% elif disaster_type == 'hurricane' %}
+                                    <option value="{{ disaster_type }}">Kasırga</option>
+                                    {% else %}
+                                    <option value="{{ disaster_type }}">Diğer</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="occurred_at" class="form-label">Tarih ve Saat</label>
+                            <input type="datetime-local" class="form-control" id="occurred_at" name="occurred_at">
+                            <div class="form-text">Belirtilmezse şu anki zaman kullanılacaktır.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Afet hakkında detaylı bilgi giriniz..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Etkilenen Şehirler <span class="text-danger">*</span></label>
+                            <div class="city-selector border rounded p-3">
+                                <div class="row">
+                                    {% for city in cities %}
+                                    <div class="col-md-3 col-sm-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="affected_cities" value="{{ city }}" id="city-{{ loop.index }}">
+                                            <label class="form-check-label" for="city-{{ loop.index }}">
+                                                {{ city }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="select-all-cities" onchange="toggleAllCities()">
+                                        <label class="form-check-label" for="select-all-cities">
+                                            <strong>Tümünü Seç/Kaldır</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-text">En az bir şehir seçilmelidir.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="affected_regions" class="form-label">Etkilenen Bölgeler (Opsiyonel)</label>
+                            <select class="form-select" id="affected_regions" name="affected_regions" multiple>
+                                <option value="Marmara">Marmara Bölgesi</option>
+                                <option value="Ege">Ege Bölgesi</option>
+                                <option value="Karadeniz">Karadeniz Bölgesi</option>
+                                <option value="İç Anadolu">İç Anadolu Bölgesi</option>
+                                <option value="Akdeniz">Akdeniz Bölgesi</option>
+                                <option value="Doğu Anadolu">Doğu Anadolu Bölgesi</option>
+                                <option value="Güneydoğu Anadolu">Güneydoğu Anadolu Bölgesi</option>
+                            </select>
+                            <div class="form-text">Birden fazla seçim yapmak için CTRL tuşunu basılı tutun.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">
+                            Aktif Afet
+                        </label>
+                        <div class="form-text">Aktif afetler gösterge panelinde ve raporlarda öne çıkarılır.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back();">İptal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Afeti Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bilgilendirme</h5>
+            </div>
+            <div class="card-body">
+                <h6>Afet Ekleme İşlemi</h6>
+                <p>Afet eklemek, sistem üzerinde aşağıdaki işlemleri yapmanıza olanak tanır:</p>
+                <ul>
+                    <li>Etkilenen bölgelerdeki çalışanları takip etme</li>
+                    <li>İlgili afet için toplu mesaj gönderme</li>
+                    <li>Gösterge panelinde ilgili afet için özel raporlar görüntüleme</li>
+                    <li>Çalışan durumlarını afet bazlı takip etme</li>
+                </ul>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Afet oluşturulduktan sonra ilgili çalışanlara bilgilendirme mesajı göndermeniz önerilir.
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-1"></i> <strong>İpucu:</strong> Afet kaydı oluşturduktan sonra, etkilenen bölgelerdeki çalışanlara otomatik olarak mesaj göndermek için yönlendirileceksiniz.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleAllCities() {
+        var isChecked = document.getElementById('select-all-cities').checked;
+        var checkboxes = document.querySelectorAll('input[name="affected_cities"]');
+        
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = isChecked;
+        });
+    }
+</script>
+{% endblock %} 

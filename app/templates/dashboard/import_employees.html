@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Çalışan İçe Aktar - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-file-excel me-2"></i>Excel'den Çalışan İçe Aktar</h1>
+    <div>
+        <a href="{{ url_for('dashboard.employees') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Çalışan Listesine Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Excel Dosyası Yükle</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.import_employees') }}" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Excel Dosyası Seçin</label>
+                        <input class="form-control" type="file" id="file" name="file" accept=".xlsx, .xls" required>
+                        <div class="form-text">Yalnızca .xlsx ve .xls formatları desteklenmektedir.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back();">İptal</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-file-import me-1"></i>İçe Aktar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bilgilendirme</h5>
+            </div>
+            <div class="card-body">
+                <h6>Excel Dosyası Gereksinimleri</h6>
+                <p>Excel dosyanızın aşağıdaki sütunları içermesi gerekmektedir:</p>
+                <ul>
+                    <li><strong>name</strong> - Çalışan adı (zorunlu)</li>
+                    <li><strong>email</strong> - E-posta adresi (zorunlu)</li>
+                    <li><strong>phone</strong> - Telefon numarası (zorunlu)</li>
+                    <li><strong>city</strong> - Şehir (zorunlu)</li>
+                    <li><strong>department</strong> - Departman (zorunlu)</li>
+                </ul>
+                
+                <p>Opsiyonel sütunlar:</p>
+                <ul>
+                    <li><strong>position</strong> - Pozisyon</li>
+                    <li><strong>address</strong> - Adres</li>
+                    <li><strong>telegram_id</strong> - Telegram ID</li>
+                    <li><strong>emergency_contact</strong> - Acil durum iletişim kişisi</li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-download me-1"></i> İçe aktarma için kullanabileceğiniz örnek bir Excel şablonunu <a href="#" class="alert-link">buradan indirebilirsiniz</a>.
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Sistemde zaten bulunan e-posta adreslerine sahip çalışanlar atlanacaktır.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Örnek Tablo Formatı</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>name</th>
+                                <th>email</th>
+                                <th>phone</th>
+                                <th>city</th>
+                                <th>department</th>
+                                <th>position</th>
+                                <th>address</th>
+                                <th>telegram_id</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ahmet Yılmaz</td>
+                                <td>ahmet.yilmaz@example.com</td>
+                                <td>+905551234567</td>
+                                <td>İstanbul</td>
+                                <td>Bilgi İşlem</td>
+                                <td>Yazılım Geliştirici</td>
+                                <td>Kadıköy, İstanbul</td>
+                                <td>@ahmet_y</td>
+                            </tr>
+                            <tr>
+                                <td>Ayşe Demir</td>
+                                <td>ayse.demir@example.com</td>
+                                <td>+905559876543</td>
+                                <td>Ankara</td>
+                                <td>İnsan Kaynakları</td>
+                                <td>İK Uzmanı</td>
+                                <td>Çankaya, Ankara</td>
+                                <td>@ayse_demir</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-secondary mt-3">
+                    <i class="fas fa-lightbulb me-1"></i> <strong>İpucu:</strong> Excel dosyanızın ilk satırının yukarıda gösterilen başlıkları içerdiğinden emin olun.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

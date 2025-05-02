@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Çalışan Ekle - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user-plus me-2"></i>Yeni Çalışan Ekle</h1>
+    <div>
+        <a href="{{ url_for('dashboard.employees') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Çalışan Listesine Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Çalışan Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.employee_add') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">İsim Soyisim <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">E-posta <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Telefon <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+905551234567">
+                            <div class="form-text">Uluslararası formatta girin (örn: +905551234567)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telegram_id" class="form-label">Telegram ID</label>
+                            <input type="text" class="form-control" id="telegram_id" name="telegram_id">
+                            <div class="form-text">Telegram kullanıcı adı veya ID</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Şehir <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="city" name="city" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">Departman <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="department" name="department" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="position" class="form-label">Pozisyon</label>
+                            <input type="text" class="form-control" id="position" name="position">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="emergency_contact" class="form-label">Acil Durum İletişim</label>
+                            <input type="text" class="form-control" id="emergency_contact" name="emergency_contact">
+                            <div class="form-text">Acil durumlarda ulaşılacak yakını</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="address" class="form-label">Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Durum</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="unknown">Bilinmiyor</option>
+                                <option value="safe">Güvende</option>
+                                <option value="trapped">Enkaz Altında</option>
+                                <option value="medical_help">Tıbbi Yardım Gerekli</option>
+                                <option value="support_needed">Destek İhtiyacı</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back();">İptal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Çalışanı Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bilgilendirme</h5>
+            </div>
+            <div class="card-body">
+                <h6>Çalışan Ekleme İşlemi</h6>
+                <p>Acil durum sistemine yeni çalışan eklemek için yukarıdaki formu doldurun.</p>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-1"></i> <strong>İpucu:</strong> Toplu çalışan eklemek için Excel'den içe aktarma özelliğini kullanabilirsiniz.
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Telefon numarasını uluslararası formatta girdiğinizden emin olun. Bu format SMS ve WhatsApp mesajları için kullanılacaktır.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

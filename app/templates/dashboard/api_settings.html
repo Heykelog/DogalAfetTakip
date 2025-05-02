@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}API Ayarları - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-cogs me-2"></i>API Ayarları</h1>
+    <div>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Gösterge Paneline Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-wrench me-2"></i>API Yapılandırma Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.api_settings') }}">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">1. WhatsApp API Yapılandırması</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="whatsapp_api_key" class="form-label">WhatsApp API Anahtarı</label>
+                                    <input type="text" class="form-control" id="whatsapp_api_key" name="whatsapp_api_key" 
+                                           value="{{ whatsapp_settings.api_key }}">
+                                    <div class="form-text">WhatsApp Business API anahtarınızı girin</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="whatsapp_phone_number" class="form-label">WhatsApp Telefon Numarası</label>
+                                    <input type="text" class="form-control" id="whatsapp_phone_number" name="whatsapp_phone_number" 
+                                           value="{{ whatsapp_settings.phone_number }}">
+                                    <div class="form-text">WhatsApp için kullanılacak telefon numarası (+90... formatında)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">2. Telegram API Yapılandırması</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="telegram_bot_token" class="form-label">Telegram Bot Token</label>
+                                    <input type="text" class="form-control" id="telegram_bot_token" name="telegram_bot_token" 
+                                           value="{{ telegram_settings.bot_token }}">
+                                    <div class="form-text">Telegram Bot API token değerinizi girin</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>Telegram botu oluşturmak için 
+                                        <a href="https://core.telegram.org/bots#6-botfather" target="_blank" class="alert-link">BotFather</a> 
+                                        kullanabilirsiniz.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">3. Twilio SMS Yapılandırması</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="twilio_account_sid" class="form-label">Twilio Account SID</label>
+                                    <input type="text" class="form-control" id="twilio_account_sid" name="twilio_account_sid" 
+                                           value="{{ twilio_settings.account_sid }}">
+                                    <div class="form-text">Twilio hesap SID değerinizi girin</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
+                                    <input type="password" class="form-control" id="twilio_auth_token" name="twilio_auth_token" 
+                                           value="{{ twilio_settings.auth_token }}">
+                                    <div class="form-text">Twilio kimlik doğrulama token değerinizi girin</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="twilio_phone_number" class="form-label">Twilio Telefon Numarası</label>
+                                    <input type="text" class="form-control" id="twilio_phone_number" name="twilio_phone_number" 
+                                           value="{{ twilio_settings.phone_number }}">
+                                    <div class="form-text">Twilio üzerinden alınan telefon numarası (+1... formatında)</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>Twilio hesabınıza 
+                                        <a href="https://www.twilio.com/console" target="_blank" class="alert-link">Twilio Console</a> 
+                                        üzerinden erişebilirsiniz.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>API anahtarları hassas bilgilerdir. Bu bilgileri güvenli bir şekilde saklayın ve paylaşmayın.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Ayarları Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>API Hakkında Bilgi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="fab fa-whatsapp text-success me-2"></i>WhatsApp API</h6>
+                        <p>WhatsApp Business API kullanarak çalışanlarınıza WhatsApp üzerinden mesaj gönderebilirsiniz.</p>
+                        <p><a href="https://business.whatsapp.com/products/business-platform" target="_blank" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-external-link-alt me-1"></i>WhatsApp Business API Dokümanı
+                        </a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fab fa-telegram-plane text-primary me-2"></i>Telegram API</h6>
+                        <p>Telegram Bot API kullanarak çalışanlarınıza Telegram üzerinden mesaj gönderebilirsiniz.</p>
+                        <p><a href="https://core.telegram.org/bots/api" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i>Telegram Bot API Dokümanı
+                        </a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-sms text-warning me-2"></i>Twilio SMS</h6>
+                        <p>Twilio SMS API kullanarak çalışanlarınıza SMS gönderebilirsiniz.</p>
+                        <p><a href="https://www.twilio.com/docs/sms" target="_blank" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-external-link-alt me-1"></i>Twilio SMS API Dokümanı
+                        </a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

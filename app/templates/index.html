@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Ana Sayfa - Acil Durum Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="row align-items-center my-5">
+    <div class="col-lg-6">
+        <h1 class="fw-bold mb-3">Acil Durum Çalışan Durum Takip Sistemi</h1>
+        <p class="lead mb-4">Afet durumlarında çalışanlarınızın güvenlik durumlarını kolayca takip edin ve hızlı iletişim kurun.</p>
+        {% if not session.get('user_id') %}
+        <div class="d-grid gap-2 d-md-flex">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary py-2 px-4">
+                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+            </a>
+            <a href="{{ url_for('main.about') }}" class="btn btn-outline-primary py-2 px-4">
+                <i class="fas fa-info-circle me-2"></i>Daha Fazla Bilgi
+            </a>
+        </div>
+        {% else %}
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary py-2 px-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Gösterge Paneline Git
+        </a>
+        {% endif %}
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <img src="{{ url_for('static', filename='img/emergency-response.svg') }}" alt="Acil Durum Takip" class="img-fluid">
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="row mb-5 g-4">
+    <div class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-user-shield fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="mb-0 fs-4 fw-bold">Çalışan Güvenliği</h3>
+                </div>
+                <p>Deprem, sel ve diğer doğal afet durumlarında şirket çalışanlarınızın güvenlik durumlarını kolayca takip edin.</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Çalışanların anlık durumlarını izleme</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Şehir ve bölge bazlı durum raporlama</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Konum bazlı takip ve haritalama</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kritik durumdaki çalışanları önceliklendirme</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-comments fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="mb-0 fs-4 fw-bold">Çok Kanallı İletişim</h3>
+                </div>
+                <p>Farklı iletişim kanalları üzerinden çalışanlarınızla iletişime geçin ve durumlarını kontrol edin.</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>WhatsApp entegrasyonu</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Telegram entegrasyonu</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>SMS gönderimi desteği</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Otomatik durum sorgulama mesajları</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                    <i class="fas fa-chart-pie fa-2x text-primary"></i>
+                </div>
+                <h3 class="fs-5 fw-bold">Analitik ve Raporlama</h3>
+                <p class="text-muted mb-0">Durum bazlı analitik grafikler, şehir ve bölge bazlı çalışan dağılımı istatistikleri.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                    <i class="fas fa-map-marked-alt fa-2x text-primary"></i>
+                </div>
+                <h3 class="fs-5 fw-bold">Harita Görünümü</h3>
+                <p class="text-muted mb-0">Çalışanların konum bazlı takibi ve harita üzerinde görselleştirme.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                    <i class="fas fa-file-excel fa-2x text-primary"></i>
+                </div>
+                <h3 class="fs-5 fw-bold">Kolay Veri Yönetimi</h3>
+                <p class="text-muted mb-0">Excel dosyasından toplu çalışan verisi içe aktarma ve çalışan kayıtlarını yönetme.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

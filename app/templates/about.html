@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Hakkında - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h1 class="display-4 text-center">Hakkımızda</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Acil Durum Çalışan Durumu Takip ve İletişim Sistemi</h2>
+                <p class="lead">Afet durumlarında çalışanlarınızın güvenliğini ön planda tutuyoruz.</p>
+                
+                <p>Geliştirilen bu sistem, afet durumlarında (deprem, sel vb.) şirket çalışanlarının güvenlik durumlarını takip etmek ve onlarla hızlı iletişim kurmak için tasarlanmış kapsamlı bir web uygulamasıdır.</p>
+                
+                <h3 class="mt-4">Misyonumuz</h3>
+                <p>Afet anında şirketlerin çalışanlarıyla hızlı ve etkili iletişim kurmasını sağlayarak, can güvenliğini artırmak ve kritik durumlarda etkili koordinasyon sağlamaktır.</p>
+                
+                <h3 class="mt-4">Neden Bu Sistem?</h3>
+                <ul>
+                    <li><strong>Hızlı Durum Tespiti:</strong> Afet durumlarında hızlı bir şekilde çalışanlarınızın durumunu öğrenin.</li>
+                    <li><strong>Çoklu İletişim Kanalları:</strong> WhatsApp, Telegram ve SMS üzerinden iletişim kurarak erişilebilirliği artırın.</li>
+                    <li><strong>Konum Bazlı Takip:</strong> Harita üzerinde çalışanlarınızın konumlarını ve durumlarını görselleştirin.</li>
+                    <li><strong>Analitik ve Raporlama:</strong> Durum bazlı analitik grafikler ve raporlar ile genel durum hakkında fikir sahibi olun.</li>
+                    <li><strong>Kolay Yönetim:</strong> Kullanıcı dostu arayüz ile sistemi kolayca yönetin.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-mobile-alt me-2"></i> İletişim Kanalları</h3>
+            </div>
+            <div class="card-body">
+                <p>Sistem, çalışanlarınızla iletişim kurmak için çeşitli kanallar sunar:</p>
+                <ul>
+                    <li><strong>WhatsApp:</strong> En yaygın mesajlaşma uygulaması üzerinden hızlı iletişim.</li>
+                    <li><strong>Telegram:</strong> Alternatif ve güvenli mesajlaşma kanalı.</li>
+                    <li><strong>SMS:</strong> İnternet bağlantısı olmadığında bile çalışan güvenilir iletişim yöntemi.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-database me-2"></i> Veri Yönetimi</h3>
+            </div>
+            <div class="card-body">
+                <p>Çalışan verilerinizi kolayca yönetin:</p>
+                <ul>
+                    <li><strong>Excel İçe Aktarma:</strong> Mevcut çalışan listelerinizi hızlıca sisteme aktarın.</li>
+                    <li><strong>Manuel Ekleme:</strong> Tek tek çalışan kaydı oluşturun veya düzenleyin.</li>
+                    <li><strong>Toplu İşlemler:</strong> Toplu durum güncelleme ve mesaj gönderimi yapın.</li>
+                    <li><strong>Güvenli Veri Saklama:</strong> MongoDB veritabanı ile güvenli veri saklama.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0"><i class="fas fa-chart-bar me-2"></i> Analitik & Raporlama</h3>
+            </div>
+            <div class="card-body">
+                <p>Durumu anlamak ve yönetmek için detaylı analizler:</p>
+                <ul>
+                    <li><strong>Durum Dağılımı:</strong> Çalışanların güvenlik durumlarının dağılımını görün.</li>
+                    <li><strong>Şehir Bazlı Analiz:</strong> Hangi şehirlerde kaç çalışanınız var ve durumları nedir?</li>
+                    <li><strong>Mesaj İstatistikleri:</strong> Gönderilen mesajların başarı oranları ve dağılımları.</li>
+                    <li><strong>Tarihçe Takibi:</strong> Durum değişikliklerinin zaman içindeki gelişimini izleyin.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2 text-center mb-5">
+        <div class="card">
+            <div class="card-body">
+                <h2>Hemen Başlayın</h2>
+                <p class="lead">Acil durumlarda çalışanlarınızla iletişim kurmak için hazır olun.</p>
+                
+                {% if not session.get('user_id') %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                </a>
+                {% else %}
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Gösterge Paneline Git
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Harita Görünümü - Acil Durum Takip Sistemi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #map-container {
+        height: 600px;
+        width: 100%;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .map-legend {
+        padding: 1rem;
+        border-radius: var(--radius);
+        background-color: white;
+        box-shadow: var(--shadow);
+    }
+    
+    .status-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .status-marker {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 0.75rem;
+    }
+    
+    .marker-safe { background-color: var(--safe); }
+    .marker-trapped { background-color: var(--trapped); }
+    .marker-medical { background-color: var(--medical); }
+    .marker-support { background-color: var(--support); }
+    .marker-unknown { background-color: var(--unknown); }
+    
+    .leaflet-popup-content-wrapper {
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold"><i class="fas fa-map-marked-alt me-2 text-primary"></i>Harita Görünümü</h2>
+    <div>
+        <a href="{{ url_for('dashboard.send_messages') }}" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-1"></i>Mesaj Gönder
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9 order-lg-2 mb-4">
+        <div class="card h-100 border-0">
+            <div class="card-body p-0">
+                <div id="map-container">
+                    {% include 'dashboard/map_data.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 order-lg-1">
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Harita Bilgisi</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Bu harita üzerinde çalışanların son bilinen konumları ve durumları gösterilmektedir.</p>
+                
+                <div class="map-legend">
+                    <h6 class="fw-bold mb-3">Durum Göstergeleri</h6>
+                    <div class="status-item">
+                        <div class="status-marker marker-safe"></div>
+                        <span>Güvende</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-marker marker-trapped"></div>
+                        <span class="text-danger fw-medium">Enkaz Altında</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-marker marker-medical"></div>
+                        <span>Tıbbi Yardım Gerekli</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-marker marker-support"></div>
+                        <span>Destek İhtiyacı</span>
+                    </div>
+                    <div class="status-item mb-0">
+                        <div class="status-marker marker-unknown"></div>
+                        <span>Durumu Bilinmiyor</span>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{{ url_for('dashboard.employees') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-1"></i>Çalışanları Görüntüle
+                    </a>
+                    <a href="{{ url_for('dashboard.disasters') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Afetleri Görüntüle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // The map is loaded from the included map_data.html which contains the Folium-generated map
+    });
+</script>
+{% endblock %} 

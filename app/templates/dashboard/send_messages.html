@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}Mesaj Gönder - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .channel-option {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .channel-option:hover {
+        border-color: #adb5bd;
+        background-color: #f8f9fa;
+    }
+    
+    .channel-option.active {
+        border-color: #007bff;
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+    
+    .channel-option i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-paper-plane me-2"></i>Mesaj Gönder</h1>
+    <div>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Gösterge Paneline Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Mesaj Gönderme Formu</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dashboard.send_messages') }}">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>1. İletişim Kanalı Seçin</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="channel-option" data-channel="sms">
+                                        <i class="fas fa-sms text-success"></i>
+                                        <h5>SMS</h5>
+                                        <p class="text-muted small">Telefon numarası olan tüm çalışanlara SMS gönder</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="channel-option" data-channel="whatsapp">
+                                        <i class="fab fa-whatsapp text-success"></i>
+                                        <h5>WhatsApp</h5>
+                                        <p class="text-muted small">WhatsApp üzerinden mesaj gönder</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="channel-option" data-channel="telegram">
+                                        <i class="fab fa-telegram-plane text-primary"></i>
+                                        <h5>Telegram</h5>
+                                        <p class="text-muted small">Telegram ID'si olan çalışanlara mesaj gönder</p>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="channel-input" name="channel" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>2. Hedef Kitleyi Seçin</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-4 mb-3">
+                                    <label for="disaster_id" class="form-label">Afet Durumu (Opsiyonel)</label>
+                                    <select class="form-select" id="disaster_id" name="disaster_id">
+                                        <option value="">Seçilmedi</option>
+                                        {% for disaster in disasters %}
+                                        <option value="{{ disaster._id }}">{{ disaster.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Belirli bir afet durumuna ait kayıtlar için</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="region" class="form-label">Bölge Filtresi (Opsiyonel)</label>
+                                    <select class="form-select" id="region" name="region">
+                                        <option value="">Tüm Bölgeler</option>
+                                        {% for region in regions %}
+                                        <option value="{{ region }}">
+                                            {% if region == 'marmara' %}
+                                                Marmara Bölgesi
+                                            {% elif region == 'aegean' %}
+                                                Ege Bölgesi
+                                            {% elif region == 'black_sea' %}
+                                                Karadeniz Bölgesi
+                                            {% elif region == 'mediterranean' %}
+                                                Akdeniz Bölgesi
+                                            {% elif region == 'central_anatolia' %}
+                                                İç Anadolu Bölgesi
+                                            {% elif region == 'eastern_anatolia' %}
+                                                Doğu Anadolu Bölgesi
+                                            {% elif region == 'southeastern_anatolia' %}
+                                                Güneydoğu Anadolu Bölgesi
+                                            {% else %}
+                                                {{ region }}
+                                            {% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Belirli bir bölgedeki çalışanlar için</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="city" class="form-label">Şehir Filtresi (Opsiyonel)</label>
+                                    <select class="form-select" id="city" name="city">
+                                        <option value="">Tüm Şehirler</option>
+                                        {% for city in cities %}
+                                        <option value="{{ city }}">{{ city }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Belirli bir şehirdeki çalışanlar için</div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Not:</strong> Bölge seçildiğinde şehir filtresi dikkate alınmaz. Bölgeye göre gönderim, şehir filtresine göre önceliklidir.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>3. Mesaj İçeriğini Oluşturun</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-12 mb-3">
+                                    <label for="template-select" class="form-label">Hazır Şablon Seçin (Opsiyonel)</label>
+                                    <select class="form-select" id="template-select">
+                                        <option value="">Şablon Seçin</option>
+                                        <optgroup label="Durum Kontrolü">
+                                            <option value="status-check">Genel Durum Kontrolü</option>
+                                            <option value="status-check-detailed">Detaylı Durum Kontrolü</option>
+                                            <option value="status-followup">Durum Takibi</option>
+                                        </optgroup>
+                                        <optgroup label="Afet Bildirimleri">
+                                            <option value="earthquake-alert">Deprem Uyarısı</option>
+                                            <option value="earthquake-aftershock">Artçı Deprem Uyarısı</option>
+                                            <option value="flood-alert">Sel Uyarısı</option>
+                                            <option value="fire-alert">Yangın Uyarısı</option>
+                                            <option value="landslide-alert">Heyelan Uyarısı</option>
+                                            <option value="storm-alert">Fırtına Uyarısı</option>
+                                        </optgroup>
+                                        <optgroup label="Tahliye ve Güvenlik">
+                                            <option value="evacuation-order">Tahliye Talimatı</option>
+                                            <option value="shelter-info">Barınma Bilgisi</option>
+                                            <option value="all-clear">Tehlike Geçti Bildirimi</option>
+                                        </optgroup>
+                                        <optgroup label="Destek ve Yardım">
+                                            <option value="aid-available">Yardım Bilgisi</option>
+                                            <option value="medical-help">Tıbbi Yardım Bilgisi</option>
+                                            <option value="support-services">Destek Hizmetleri</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-12 mb-3">
+                                    <label for="message-text" class="form-label">Mesaj Metni</label>
+                                    <textarea class="form-control" id="message-text" name="message" rows="5" required></textarea>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>Mesajınız, çalışanlarınızın durum bildirimi yapmalarını kolaylaştıracak yönergeler içermelidir.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back();">İptal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Mesajları Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bilgilendirme</h5>
+            </div>
+            <div class="card-body">
+                <h6>Mesaj Gönderimleri Hakkında:</h6>
+                <ul>
+                    <li>SMS gönderimi için Twilio servisi kullanılmaktadır.</li>
+                    <li>WhatsApp mesajları WhatsApp Business API üzerinden gönderilmektedir.</li>
+                    <li>Telegram mesajları için çalışanların Telegram ID'lerinin sisteme kaydedilmiş olması gerekmektedir.</li>
+                    <li>Gönderilen mesajların durumları ve istatistikleri gösterge panelinde görüntülenebilir.</li>
+                </ul>
+                
+                <h6 class="mt-3">Bölgesel Gönderim:</h6>
+                <ul>
+                    <li><strong>Marmara Bölgesi:</strong> İstanbul, Bursa, Kocaeli, Sakarya, Tekirdağ, Edirne, Kırklareli, Balıkesir, Çanakkale, Yalova, Bilecik</li>
+                    <li><strong>Ege Bölgesi:</strong> İzmir, Aydın, Muğla, Manisa, Denizli, Kütahya, Afyonkarahisar, Uşak</li>
+                    <li><strong>Karadeniz Bölgesi:</strong> Samsun, Trabzon, Rize, Ordu, Giresun, Artvin, Gümüşhane, Bayburt, Bartın, Kastamonu, Çorum, Sinop, Amasya, Tokat, Zonguldak, Karabük, Düzce, Bolu</li>
+                    <li><strong>Akdeniz Bölgesi:</strong> Antalya, Mersin, Adana, Hatay, Osmaniye, Kahramanmaraş, Burdur, Isparta</li>
+                    <li><strong>İç Anadolu Bölgesi:</strong> Ankara, Konya, Kayseri, Eskişehir, Sivas, Kırıkkale, Aksaray, Niğde, Nevşehir, Kırşehir, Karaman, Yozgat</li>
+                    <li><strong>Doğu Anadolu Bölgesi:</strong> Erzurum, Malatya, Elazığ, Van, Kars, Ağrı, Ardahan, Iğdır, Tunceli, Bingöl, Erzincan, Muş, Bitlis, Hakkari</li>
+                    <li><strong>Güneydoğu Anadolu Bölgesi:</strong> Gaziantep, Şanlıurfa, Diyarbakır, Mardin, Batman, Siirt, Şırnak, Adıyaman, Kilis</li>
+                </ul>
+                
+                <h6 class="mt-3">Durum Kodları:</h6>
+                <ul>
+                    <li><strong>1:</strong> Güvendeyim</li>
+                    <li><strong>2:</strong> Enkaz altındayım</li>
+                    <li><strong>3:</strong> Tıbbi yardıma ihtiyacım var</li>
+                    <li><strong>4:</strong> Desteğe ihtiyacım var</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Channel selector
+        const channelOptions = document.querySelectorAll('.channel-option');
+        const channelInput = document.getElementById('channel-input');
+        
+        channelOptions.forEach(function(option) {
+            option.addEventListener('click', function() {
+                // Remove active class from all options
+                channelOptions.forEach(function(opt) {
+                    opt.classList.remove('active');
+                });
+                
+                // Add active class to selected option
+                this.classList.add('active');
+                
+                // Set input value
+                channelInput.value = this.dataset.channel;
+            });
+        });
+        
+        // Region and city selectors
+        const regionSelect = document.getElementById('region');
+        const citySelect = document.getElementById('city');
+        
+        regionSelect.addEventListener('change', function() {
+            // If region is selected, disable city select
+            if (this.value) {
+                citySelect.disabled = true;
+                citySelect.value = '';
+            } else {
+                citySelect.disabled = false;
+            }
+        });
+        
+        citySelect.addEventListener('change', function() {
+            // If city is selected, disable region select
+            if (this.value) {
+                regionSelect.disabled = true;
+                regionSelect.value = '';
+            } else {
+                regionSelect.disabled = false;
+            }
+        });
+        
+        // Message template selection
+        const templateSelect = document.getElementById('template-select');
+        const messageTextarea = document.getElementById('message-text');
+        
+        const templates = {
+            // Durum Kontrolü
+            'status-check': 'Merhaba, güvende olduğunuzu umuyoruz. Lütfen durumunuzu belirtiniz: 1-Güvendeyim, 2-Enkaz altındayım, 3-Tıbbi yardıma ihtiyacım var, 4-Desteğe ihtiyacım var',
+            'status-check-detailed': 'Merhaba, acil durum yönetim merkezinden bildiri. Lütfen aşağıdaki bilgileri paylaşarak durumunuzu bildiriniz:\n1-Güvendeyim\n2-Enkaz altındayım\n3-Tıbbi yardıma ihtiyacım var\n4-Desteğe ihtiyacım var\nAyrıca bulunduğunuz konumu ve yanınızda bulunan kişi sayısını belirtirseniz yardım çalışmalarını hızlandırabiliriz.',
+            'status-followup': 'Merhaba, daha önce durumunuzu bildirdiğiniz için teşekkür ederiz. Durumunuzda bir değişiklik varsa lütfen güncelleyiniz: 1-Güvendeyim, 2-Enkaz altındayım, 3-Tıbbi yardıma ihtiyacım var, 4-Desteğe ihtiyacım var',
+
+            // Afet Bildirimleri
+            'earthquake-alert': 'DİKKAT! Bölgenizde deprem meydana geldi. Lütfen güvenli bir alana geçiniz ve durumunuzu bildiriniz. Bina içindeyseniz "Çök-Kapan-Tutun" pozisyonu alınız, sarsıntı geçtikten sonra binayı tahliye ediniz.',
+            'earthquake-aftershock': 'DİKKAT! Bölgenizde artçı depremler beklenmektedir. Hasarlı binalara girmeyiniz. Açık ve güvenli alanlarda kalınız. Durumunuzu bildiriniz.',
+            'flood-alert': 'DİKKAT! Bölgenizde sel tehlikesi mevcut. Lütfen yüksek ve güvenli bir alana geçiniz, araç kullanmaktan kaçınınız ve durumunuzu bildiriniz.',
+            'fire-alert': 'DİKKAT! Bölgenizde yangın tehlikesi mevcut. Lütfen derhal güvenli bir alana geçiniz, dumanın olduğu yönün tersine hareket ediniz ve durumunuzu bildiriniz.',
+            'landslide-alert': 'DİKKAT! Bölgenizde heyelan tehlikesi mevcut. Yamaç, tepe ve dere yataklarından uzak durunuz, güvenli bir alana geçiniz ve durumunuzu bildiriniz.',
+            'storm-alert': 'DİKKAT! Bölgenizde şiddetli fırtına beklenmektedir. Lütfen kapalı alanlarda kalınız, pencereleri kapatınız, araç kullanmaktan kaçınınız ve durumunuzu bildiriniz.',
+
+            // Tahliye ve Güvenlik
+            'evacuation-order': 'ACİL TAHLİYE TALİMATI: Bölgeniz için tahliye kararı verilmiştir. Lütfen en kısa sürede bölgeyi terk ediniz ve en yakın toplanma alanına gidiniz. Toplanma alanı: [TOPLANMA ALANI BİLGİSİ]. Durumunuzu ve toplanma alanına ulaşıp ulaşmadığınızı bildiriniz.',
+            'shelter-info': 'Bölgenizde geçici barınma alanları oluşturulmuştur. En yakın barınma alanları: [BARINMA ALANI BİLGİSİ]. Barınma alanlarında temel ihtiyaçlar karşılanmaktadır. Durumunuzu ve yardıma ihtiyacınız olup olmadığını bildiriniz.',
+            'all-clear': 'Tehlike geçmiştir. Durumunuzu güncellemeniz için teşekkür ederiz. Bölgenize güvenli bir şekilde dönebilirsiniz. Geri dönüş sırasında yetkililerin yönlendirmelerine uyunuz.',
+
+            // Destek ve Yardım
+            'aid-available': 'Bölgenizde yardım dağıtım noktaları kurulmuştur. En yakın yardım noktası: [YARDIM NOKTASI BİLGİSİ]. Su, gıda ve temel ihtiyaç malzemeleri dağıtılmaktadır. İhtiyaçlarınızı ve durumunuzu bildiriniz.',
+            'medical-help': 'Bölgenizde sağlık hizmetleri: [SAĞLIK HİZMETİ BİLGİSİ]. Acil sağlık hizmetine ihtiyacınız varsa lütfen 112\'yi arayınız veya durumunuzu ve konumunuzu bize bildiriniz.',
+            'support-services': 'Psikolojik destek, barınma ve temel ihtiyaç yardımları için: [DESTEK HİZMETİ BİLGİSİ]. Durumunuzu ve hangi tür desteğe ihtiyacınız olduğunu bildiriniz.'
+        };
+        
+        templateSelect.addEventListener('change', function() {
+            const selectedTemplate = this.value;
+            if (selectedTemplate in templates) {
+                messageTextarea.value = templates[selectedTemplate];
+            }
+        });
+    });
+</script>
+{% endblock %} 

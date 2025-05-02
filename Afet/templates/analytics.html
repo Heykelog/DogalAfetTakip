@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFET - İstatistikler ve Analitik</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            padding-top: 70px; /* Sabit navbar için üst kısımda boşluk */
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #6c757d;
+        }
+        .urgent-color {
+            color: #dc3545;
+        }
+        .medical-color {
+            color: #fd7e14;
+        }
+        .safe-color {
+            color: #28a745;
+        }
+        .unknown-color {
+            color: #6c757d;
+        }
+        .chart-container {
+            height: 300px;
+            width: 100%;
+            position: relative;
+        }
+        .trend-arrow {
+            font-size: 1.5rem;
+        }
+        .trend-up {
+            color: #dc3545;
+        }
+        .trend-down {
+            color: #28a745;
+        }
+        .trend-stable {
+            color: #6c757d;
+        }
+        /* Sabit üst bar için stil */
+        .navbar-fixed {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar - sabit -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 navbar-fixed">
+        <div class="container">
+            <a class="navbar-brand" href="/admin">AFET Yönetim Sistemi</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/map">Harita</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/analytics">İstatistikler</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="d-flex">
+                <a href="/admin/logout" class="btn btn-outline-light btn-sm">Çıkış Yap</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2>İstatistikler ve Analitik</h2>
+                <p>Bu sayfa çalışan durumlarının ve afet verilerinin detaylı analizini göstermektedir.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button id="refresh-analytics" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> Verileri Güncelle
+                </button>
+            </div>
+        </div>
+        
+        <!-- İstatistik Kartları -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="stat-value" id="total-count">-</div>
+                    <div class="stat-label">Toplam Çalışan</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="stat-value urgent-color" id="urgent-count">-</div>
+                    <div class="stat-label">Enkaz Altında</div>
+                    <div class="trend-arrow" id="urgent-trend"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="stat-value medical-color" id="medical-count">-</div>
+                    <div class="stat-label">Tıbbi Yardım</div>
+                    <div class="trend-arrow" id="medical-trend"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="stat-value safe-color" id="safe-count">-</div>
+                    <div class="stat-label">İyi Durumda</div>
+                    <div class="trend-arrow" id="safe-trend"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Grafikler -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="m-0">Durum Dağılımı</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <img id="status-chart" src="/api/analytics/charts/status" class="img-fluid" alt="Durum Dağılımı">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="m-0">Şehir Bazlı Dağılım</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <img id="city-chart" src="/api/analytics/charts/city" class="img-fluid" alt="Şehir Bazlı Dağılım">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="m-0">Acil Durum Şehir Dağılımı</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <img id="emergency-chart" src="/api/analytics/charts/emergency" class="img-fluid" alt="Acil Durum Dağılımı">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="m-0">Güncel Durum Özeti</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Son 24 Saat Aktif:</span>
+                                            <span class="badge bg-primary" id="recent-updates">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Durumu Bilinmeyen:</span>
+                                            <span class="badge bg-secondary" id="unknown-count-badge">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-4 mb-3">En Çok Etkilenen Şehirler</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Şehir</th>
+                                        <th>Toplam</th>
+                                        <th>Acil Durum</th>
+                                        <th>Oran</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="city-stats">
+                                    <tr>
+                                        <td colspan="4" class="text-center">Veri yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bölge Dağılımı -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="m-0">Bölgesel Dağılım</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Bölge</th>
+                                        <th>Toplam Çalışan</th>
+                                        <th>Enkaz Altında</th>
+                                        <th>Tıbbi Yardım</th>
+                                        <th>İyi Durumda</th>
+                                        <th>Bilinmiyor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="region-stats">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Veri yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sayfa yüklendiğinde verileri getir
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+        
+        // Yenileme butonu olayı
+        document.getElementById('refresh-analytics').addEventListener('click', function() {
+            loadAnalytics();
+            refreshCharts();
+        });
+        
+        // Analitik verilerini yükleme
+        function loadAnalytics() {
+            fetch('/api/analytics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        updateAnalytics(data.data);
+                    } else {
+                        alert('İstatistikler alınırken bir hata oluştu: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading analytics:', error);
+                    alert('İstatistikler alınırken bir hata oluştu');
+                });
+        }
+        
+        // Grafikleri yenileme
+        function refreshCharts() {
+            // Her grafiği yenilemek için URL'e timestamp ekle
+            const timestamp = new Date().getTime();
+            
+            document.getElementById('status-chart').src = `/api/analytics/charts/status?t=${timestamp}`;
+            document.getElementById('city-chart').src = `/api/analytics/charts/city?t=${timestamp}`;
+            document.getElementById('emergency-chart').src = `/api/analytics/charts/emergency?t=${timestamp}`;
+        }
+        
+        // Analitik verilerini güncelleme
+        function updateAnalytics(data) {
+            // Özet sayıları güncelle
+            document.getElementById('total-count').textContent = data.total_employees;
+            document.getElementById('urgent-count').textContent = data.status_distribution.urgent;
+            document.getElementById('medical-count').textContent = data.status_distribution.medical;
+            document.getElementById('safe-count').textContent = data.status_distribution.safe;
+            document.getElementById('unknown-count-badge').textContent = data.status_distribution.unknown;
+            document.getElementById('recent-updates').textContent = data.recent_updates;
+            
+            // Trend okları (burada gerçek trend analizi yerine sabit değerler kullanıyoruz)
+            // Gerçek uygulamada önceki verileri karşılaştırarak trendleri belirlemek gerekir
+            document.getElementById('urgent-trend').innerHTML = '<i class="bi bi-arrow-up-circle-fill trend-up"></i>';
+            document.getElementById('medical-trend').innerHTML = '<i class="bi bi-arrow-down-circle-fill trend-down"></i>';
+            document.getElementById('safe-trend').innerHTML = '<i class="bi bi-arrow-up-circle-fill trend-up"></i>';
+            
+            // En çok etkilenen şehirler tablosunu güncelle
+            updateCityStats(data.city_distribution, data.emergency_by_city);
+            
+            // Bölgesel dağılım tablosunu güncelle
+            // Burada basitlik için sadece bölge sayısını gösteriyoruz
+            // Gerçek uygulamada her bölge için durum dağılımını da göstermek gerekir
+            updateRegionStats(data.region_distribution);
+        }
+        
+        // En çok etkilenen şehirler tablosunu güncelleme
+        function updateCityStats(cityData, emergencyData) {
+            const cityStatsTable = document.getElementById('city-stats');
+            cityStatsTable.innerHTML = '';
+            
+            // Şehir verilerini işle
+            const cityMap = {};
+            cityData.forEach(item => {
+                cityMap[item.city] = { total: item.count, emergency: 0 };
+            });
+            
+            // Acil durum verilerini işle
+            emergencyData.forEach(item => {
+                if (cityMap[item.city]) {
+                    cityMap[item.city].emergency = item.count;
+                } else {
+                    cityMap[item.city] = { total: 0, emergency: item.count };
+                }
+            });
+            
+            // Tabloyu oluştur ve acil durum oranına göre sırala
+            const sortedCities = Object.entries(cityMap)
+                .map(([city, data]) => ({
+                    city: city,
+                    total: data.total,
+                    emergency: data.emergency,
+                    ratio: data.total > 0 ? (data.emergency / data.total) : 0
+                }))
+                .sort((a, b) => b.emergency - a.emergency)
+                .slice(0, 5); // İlk 5 şehri göster
+            
+            sortedCities.forEach(city => {
+                const row = document.createElement('tr');
+                const ratio = (city.ratio * 100).toFixed(1);
+                const ratioClass = ratio > 50 ? 'text-danger' : (ratio > 25 ? 'text-warning' : 'text-success');
+                
+                row.innerHTML = `
+                    <td>${city.city}</td>
+                    <td>${city.total}</td>
+                    <td>${city.emergency}</td>
+                    <td class="${ratioClass}">${ratio}%</td>
+                `;
+                
+                cityStatsTable.appendChild(row);
+            });
+            
+            // Eğer veri yoksa bilgi mesajı göster
+            if (sortedCities.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4" class="text-center">Veri bulunamadı</td>';
+                cityStatsTable.appendChild(row);
+            }
+        }
+        
+        // Bölgesel dağılım tablosunu güncelleme
+        function updateRegionStats(regionData) {
+            const regionStatsTable = document.getElementById('region-stats');
+            regionStatsTable.innerHTML = '';
+            
+            // Basit gösterim için sadece toplam sayıları kullanıyoruz
+            regionData.forEach(region => {
+                const row = document.createElement('tr');
+                
+                // Gerçek uygulamada bu değerler API'den alınmalı
+                // Burada örnek değerler kullanıyoruz
+                const urgent = Math.floor(Math.random() * region.count * 0.3);
+                const medical = Math.floor(Math.random() * region.count * 0.2);
+                const safe = Math.floor(Math.random() * region.count * 0.4);
+                const unknown = region.count - urgent - medical - safe;
+                
+                row.innerHTML = `
+                    <td>${region.region}</td>
+                    <td>${region.count}</td>
+                    <td class="text-danger">${urgent}</td>
+                    <td class="text-warning">${medical}</td>
+                    <td class="text-success">${safe}</td>
+                    <td class="text-secondary">${unknown}</td>
+                `;
+                
+                regionStatsTable.appendChild(row);
+            });
+            
+            // Eğer veri yoksa bilgi mesajı göster
+            if (regionData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6" class="text-center">Bölge verisi bulunamadı</td>';
+                regionStatsTable.appendChild(row);
+            }
+        }
+    </script>
+</body>
+</html> 

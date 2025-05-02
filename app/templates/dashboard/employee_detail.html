@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Çalışan Detayı - {{ employee.name }} - Acil Durum Çalışan Takip Sistemi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user me-2"></i>Çalışan Detayı</h1>
+    <div>
+        <a href="{{ url_for('dashboard.employees') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Çalışan Listesine Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Employee Profile -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Profil Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                        {{ employee.name[0]|upper }}
+                    </div>
+                    <h4>{{ employee.name }}</h4>
+                    <p class="text-muted">{{ employee.get('position', 'Pozisyon Belirtilmemiş') }}</p>
+                    
+                    {% set status = employee.get('status', 'unknown') %}
+                    {% if status == 'safe' %}
+                    <div class="badge bg-success p-2 mb-3">Güvende</div>
+                    {% elif status == 'trapped' %}
+                    <div class="badge bg-danger p-2 mb-3">Enkaz Altında</div>
+                    {% elif status == 'medical_help' %}
+                    <div class="badge bg-warning p-2 mb-3">Tıbbi Yardım Gerekli</div>
+                    {% elif status == 'support_needed' %}
+                    <div class="badge bg-info p-2 mb-3">Destek İhtiyacı</div>
+                    {% else %}
+                    <div class="badge bg-secondary p-2 mb-3">Durumu Bilinmiyor</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Durum Güncelle</h6>
+                    <div class="btn-group w-100">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="updateEmployeeStatus('{{ employee._id }}', 'safe')">
+                            Güvende
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="updateEmployeeStatus('{{ employee._id }}', 'trapped')">
+                            Enkaz Altında
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="updateEmployeeStatus('{{ employee._id }}', 'medical_help')">
+                            Tıbbi Yardım
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="updateEmployeeStatus('{{ employee._id }}', 'support_needed')">
+                            Destek
+                        </button>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>İletişim Bilgileri</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2 text-primary"></i>
+                        <a href="mailto:{{ employee.email }}">{{ employee.email }}</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2 text-primary"></i>
+                        <a href="tel:{{ employee.get('phone', '') }}">{{ employee.get('phone', 'Belirtilmemiş') }}</a>
+                    </li>
+                    {% if employee.get('telegram_id') %}
+                    <li class="mb-2">
+                        <i class="fab fa-telegram me-2 text-primary"></i>
+                        {{ employee.telegram_id }}
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <hr>
+                
+                <h6>Kişisel Bilgiler</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-building me-2 text-primary"></i>
+                        <strong>Departman:</strong> {{ employee.get('department', 'Belirtilmemiş') }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                        <strong>Şehir:</strong> {{ employee.get('city', 'Belirtilmemiş') }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-home me-2 text-primary"></i>
+                        <strong>Adres:</strong> {{ employee.get('address', 'Belirtilmemiş') }}
+                    </li>
+                </ul>
+                
+                {% if employee.get('emergency_contact') %}
+                <hr>
+                
+                <h6>Acil Durum İletişimi</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-user me-2 text-danger"></i>
+                        <strong>Kişi:</strong> {{ employee.emergency_contact.get('name', 'Belirtilmemiş') }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2 text-danger"></i>
+                        <strong>Telefon:</strong>
+                        <a href="tel:{{ employee.emergency_contact.get('phone', '') }}">
+                            {{ employee.emergency_contact.get('phone', 'Belirtilmemiş') }}
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-user-friends me-2 text-danger"></i>
+                        <strong>İlişki:</strong> {{ employee.emergency_contact.get('relation', 'Belirtilmemiş') }}
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Mesaj Gönder
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="fas fa-user-edit me-1"></i>Bilgileri Düzenle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status History and Messages -->
+    <div class="col-md-8">
+        <!-- Status History -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Durum Geçmişi</h5>
+            </div>
+            <div class="card-body">
+                {% if employee.get('status_history') and employee.status_history|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Önceki Durum</th>
+                                <th>Yeni Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history in employee.status_history|sort(attribute='changed_at', reverse=true) %}
+                            <tr>
+                                <td>{{ history.changed_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>
+                                    {% if history.from_status == 'safe' %}
+                                    <span class="badge bg-success">Güvende</span>
+                                    {% elif history.from_status == 'trapped' %}
+                                    <span class="badge bg-danger">Enkaz Altında</span>
+                                    {% elif history.from_status == 'medical_help' %}
+                                    <span class="badge bg-warning">Tıbbi Yardım Gerekli</span>
+                                    {% elif history.from_status == 'support_needed' %}
+                                    <span class="badge bg-info">Destek İhtiyacı</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Bilinmiyor</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if history.to_status == 'safe' %}
+                                    <span class="badge bg-success">Güvende</span>
+                                    {% elif history.to_status == 'trapped' %}
+                                    <span class="badge bg-danger">Enkaz Altında</span>
+                                    {% elif history.to_status == 'medical_help' %}
+                                    <span class="badge bg-warning">Tıbbi Yardım Gerekli</span>
+                                    {% elif history.to_status == 'support_needed' %}
+                                    <span class="badge bg-info">Destek İhtiyacı</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Bilinmiyor</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-history fa-3x mb-3"></i>
+                    <p>Henüz durum değişikliği kaydedilmemiş.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Message History -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Mesaj Geçmişi</h5>
+                    <span class="badge bg-primary">{{ messages|length }} mesaj</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if messages and messages|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kanal</th>
+                                <th>İçerik</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for message in messages|sort(attribute='created_at', reverse=true) %}
+                            <tr>
+                                <td>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>
+                                    {% if message.channel == 'sms' %}
+                                    <span class="badge bg-secondary">SMS</span>
+                                    {% elif message.channel == 'whatsapp' %}
+                                    <span class="badge bg-success">WhatsApp</span>
+                                    {% elif message.channel == 'telegram' %}
+                                    <span class="badge bg-primary">Telegram</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ message.channel }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ message.content|truncate(40) }}
+                                    <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ message.content }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    {% if message.status == 'sent' %}
+                                    <span class="badge bg-success">Gönderildi</span>
+                                    {% elif message.status == 'delivered' %}
+                                    <span class="badge bg-info">İletildi</span>
+                                    {% elif message.status == 'failed' %}
+                                    <span class="badge bg-danger">Başarısız</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Beklemede</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-comment-slash fa-3x mb-3"></i>
+                    <p>Henüz mesaj gönderilmemiş.</p>
+                    <a href="{{ url_for('dashboard.send_messages') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Mesaj Gönder
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %} 
